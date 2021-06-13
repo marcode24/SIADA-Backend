@@ -46,7 +46,7 @@ const enableProduct = async(req = request, res = response) => {
             return res.status(404).json({ msg: 'product not found' });
         }
         if(productDB.enabled) {
-            return res.status(400).json({ msg: 'product has already been enabled' });
+            return res.json({ msg: 'product has already been enabled' });
         }
         await productDB.update({enabled: true});
         res.json({msg: 'product enabled correclty'});
@@ -56,8 +56,27 @@ const enableProduct = async(req = request, res = response) => {
     }
 }
 
+const disableProduct = async(req = request, res = response) => {
+    try {
+        const { idProduct } = req.params;
+        const productDB = await Product.findOne({where: {productCode: Number(idProduct)}})
+        if(!productDB) {
+            return res.status(404).json({ msg: 'product not found' });
+        }
+        if(!productDB.enabled) {
+            return res.json({ msg: 'product has already been disabled' });
+        }
+        await productDB.update({enabled: false});
+        res.json({msg: 'product disabled correclty'});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: 'something went wrong' });
+    }
+}
+
 module.exports = {
     createProduct,
     getProducts,
-    enableProduct
+    enableProduct,
+    disableProduct
 };
