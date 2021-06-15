@@ -102,10 +102,28 @@ const editProduct = async(req = request, res = response) => {
     }
 }
 
+const setPriceProduct = async(req = request, res = response) => {
+    try {
+        const { idProduct } = req.params;
+        const { price } = req.body;
+        const regExpPrice = /^(([0-9][0-9]{0,2})([.][0-9][1-9]{0,1})?|1000|1000.00)$/;
+        const productDB = await Product.findOne({where: {productCode: Number(idProduct)}})
+        if(!productDB) {
+            return res.status(404).json({ msg: 'product not found' });
+        }
+        await productDB.update({ price });
+        res.json({ msg: 'price product set correctly' });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: 'something went wrong' });
+    }
+}
+
 module.exports = {
     createProduct,
     getProducts,
     enableProduct,
     disableProduct,
-    editProduct
+    editProduct,
+    setPriceProduct
 };
