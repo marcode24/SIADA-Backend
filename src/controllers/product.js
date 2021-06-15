@@ -1,19 +1,18 @@
 const { request, response } = require('express');
 const Product = require('../models/product');
+const { validateProductCode, validateProductName } = require('../helpers/validate-fields');
 
 const createProduct = async(req = request, res = response) => {
     try {
-        const regExpCode = /^[0-9]{13}$/,
-            regExpName = /^[a-zA-Z\s\S]{5,40}$/ ;
         const { productCode, productName, stock } = req.body;
-        if(!regExpCode.test(productCode.toString())) {
+        if(!validateProductCode(productCode)) {
             return res.status(400).json({msg: 'product code invalid' })
         }
         const codeExist = await Product.findOne({where: {productCode}});
         if(codeExist) {
             return res.status(400).json({ msg: 'code already exists' });
         }
-        if(!regExpName.test(productName)) {
+        if(!validateProductName(productName)) {
             return res.status(400).json({ msg: 'product name invalid' })
         }
         if(typeof stock !== 'number' || stock <= 0 || stock >= 1000) {
@@ -76,21 +75,21 @@ const disableProduct = async(req = request, res = response) => {
 
 const editProduct = async(req = request, res = response) => {
     try {
-        const regExpCode = /^[0-9]{13}$/,
-            regExpName = /^[a-zA-Z\s\S]{5,40}$/ ;
         const { productCode, productName, stock } = req.body;
-        if(!regExpCode.test(productCode.toString())) {
+        if(!validateProductCode(productCode)) {
             return res.status(400).json({msg: 'product code invalid' })
         }
         const codeExist = await Product.findOne({where: {productCode}});
-        if(codeExist) {
-            return res.status(400).json({ msg: 'code already exists' });
-        }
-        if(!regExpName.test(productName)) {
-            return res.status(400).json({ msg: 'product name invalid' })
-        }
-        if(typeof stock !== 'number' || stock <= 0 || stock >= 1000) {
-            return res.status(400).json({ msg: 'stock invalid' })
+        if(codeExist.productCode !== productCode) {
+            if(codeExist) {
+                return res.status(400).json({ msg: 'code already exists' });
+            }
+            if(!validateProductName(productName)) {
+                return res.status(400).json({ msg: 'product name invalid' })
+            }
+            if(typeof stock !== 'number' || stock <= 0 || stock >= 1000) {
+                return res.status(400).json({ msg: 'stock invalid' })
+            }
         }
         const { idProduct } = req.params;
         const productDB = await Product.findOne({where: {productCode: Number(idProduct)}})
